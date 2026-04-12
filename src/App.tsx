@@ -1,35 +1,62 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { AuthProvider } from '@/auth/AuthContext'
+import { ProtectedRoute } from '@/auth/ProtectedRoute'
+import { RequireRole } from '@/auth/RequireRole'
+import { ToastProvider } from '@/components/ui/Toast'
+import { AdminLayout } from '@/layouts/AdminLayout'
+import { LoginPage } from '@/pages/LoginPage'
+import { DashboardPage } from '@/pages/DashboardPage'
+import { SchoolsPage } from '@/pages/SchoolsPage'
+import { UsersPage } from '@/pages/UsersPage'
+import { ClassroomsPage } from '@/pages/ClassroomsPage'
+import { ClassroomDetailPage } from '@/pages/ClassroomDetailPage'
+import { SubjectChaptersPage } from '@/pages/SubjectChaptersPage'
+import { ChapterDetailPage } from '@/pages/ChapterDetailPage'
+import { SupportTicketsPage } from '@/pages/SupportTicketsPage'
 
-function App() {
-  const [count, setCount] = useState(0)
-
+export default function App() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <BrowserRouter>
+      <ToastProvider>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route element={<ProtectedRoute />}>
+              <Route element={<AdminLayout />}>
+                <Route index element={<DashboardPage />} />
+                <Route
+                  path="schools"
+                  element={
+                    <RequireRole roles={['super_admin']}>
+                      <SchoolsPage />
+                    </RequireRole>
+                  }
+                />
+                <Route path="users" element={<UsersPage />} />
+                <Route path="classrooms" element={<ClassroomsPage />} />
+                <Route path="classrooms/:classroomId" element={<ClassroomDetailPage />} />
+                <Route
+                  path="classrooms/:classroomId/subjects/:subjectId/chapters"
+                  element={<SubjectChaptersPage />}
+                />
+                <Route
+                  path="classrooms/:classroomId/subjects/:subjectId/chapters/:chapterId"
+                  element={<ChapterDetailPage />}
+                />
+                <Route
+                  path="support"
+                  element={
+                    <RequireRole roles={['super_admin']}>
+                      <SupportTicketsPage />
+                    </RequireRole>
+                  }
+                />
+              </Route>
+            </Route>
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </AuthProvider>
+      </ToastProvider>
+    </BrowserRouter>
   )
 }
-
-export default App

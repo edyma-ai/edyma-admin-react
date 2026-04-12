@@ -1,68 +1,114 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import 'tailwindcss';
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+@theme {
+  /* Brand — matches Flutter AppColors / AppTheme */
+  --color-brand-slate: #0f172a;
+  --color-brand-sky: #77c6fc;
+  --color-brand-sky-light: #bbe3fe;
+  --color-muted: #475569;
+  --color-canvas: #f8fafc;
+  --color-border-light: #e2e8f0;
+  --color-border: #cbd5e1;
+  --color-accent-blue: #0369a1;
+  --color-accent-orange: #ea580c;
+  --color-accent-green: #16a34a;
+  --color-error: #b42318;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --font-sans: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+html {
+  @apply antialiased;
 }
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  @apply bg-canvas text-brand-slate font-sans;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* TipTap rich text editor content styles */
+.tiptap-content .ProseMirror {
+  min-height: 200px;
+  outline: none;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+.tiptap-content .ProseMirror h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 1rem 0 0.5rem;
+  line-height: 1.3;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+.tiptap-content .ProseMirror h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0.75rem 0 0.5rem;
+  line-height: 1.3;
+}
+
+.tiptap-content .ProseMirror h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0.5rem 0 0.25rem;
+  line-height: 1.3;
+}
+
+.tiptap-content .ProseMirror p {
+  margin: 0.25rem 0;
+}
+
+.tiptap-content .ProseMirror ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin: 0.25rem 0;
+}
+
+.tiptap-content .ProseMirror ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin: 0.25rem 0;
+}
+
+.tiptap-content .ProseMirror li {
+  margin: 0.15rem 0;
+}
+
+.tiptap-content .ProseMirror blockquote {
+  border-left: 3px solid var(--color-border);
+  padding-left: 1rem;
+  margin: 0.5rem 0;
+  color: var(--color-muted);
+  font-style: italic;
+}
+
+.tiptap-content .ProseMirror pre {
+  background-color: #f1f5f9;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+  margin: 0.5rem 0;
+  overflow-x: auto;
+}
+
+.tiptap-content .ProseMirror code {
+  background-color: #f1f5f9;
+  border-radius: 0.25rem;
+  padding: 0.1rem 0.3rem;
+  font-family: ui-monospace, monospace;
+  font-size: 0.85em;
+}
+
+.tiptap-content .ProseMirror pre code {
+  background: none;
+  padding: 0;
+}
+
+.tiptap-content .ProseMirror hr {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  margin: 1rem 0;
+}
+
+.tiptap-content .ProseMirror > *:first-child {
+  margin-top: 0;
 }
