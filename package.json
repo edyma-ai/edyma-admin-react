@@ -11,6 +11,7 @@
     "deploy": "npm run build && npx gh-pages -d dist -b build"
   },
   "dependencies": {
+    "@tiptap/extension-image": "^3.22.3",
     "@tiptap/extension-text-align": "^3.22.3",
     "@tiptap/extension-underline": "^3.22.3",
     "@tiptap/pm": "^3.22.3",

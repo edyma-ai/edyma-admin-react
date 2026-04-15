@@ -109,6 +109,13 @@ body {
   margin: 1rem 0;
 }
 
+.tiptap-content .ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 0.5rem 0;
+}
+
 .tiptap-content .ProseMirror > *:first-child {
   margin-top: 0;
 }

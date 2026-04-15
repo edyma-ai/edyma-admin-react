@@ -1,9 +1,11 @@
-import { useEditor, EditorContent, type Editor } from '@tiptap/react'
+import { useEditor, EditorContent, type Editor, NodeViewWrapper, ReactNodeViewRenderer } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import TextAlign from '@tiptap/extension-text-align'
+import TiptapImage from '@tiptap/extension-image'
 import { Markdown } from 'tiptap-markdown'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { api } from '@/api/client'
 
 function getMarkdown(editor: Editor): string {
   return (editor.storage as Record<string, any>).markdown.getMarkdown() // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -19,7 +21,88 @@ import {
   AlignCenter,
   AlignRight,
   Minus,
+  Image as ImageIcon,
 } from 'react-feather'
+
+/* ── S3 URI helpers ────────────────────────────────────────────────── */
+
+const S3_PREFIX = 's3://'
+
+function isS3Uri(uri: string): boolean {
+  return uri.startsWith(S3_PREFIX)
+}
+
+function s3UriToKey(uri: string): string {
+  const withoutScheme = uri.slice(S3_PREFIX.length)
+  const slashIdx = withoutScheme.indexOf('/')
+  return slashIdx < 0 ? withoutScheme : withoutScheme.slice(slashIdx + 1)
+}
+
+const s3UrlCache = new Map<string, string>()
+
+async function resolveS3Url(s3Uri: string): Promise<string> {
+  const key = s3UriToKey(s3Uri)
+  const cached = s3UrlCache.get(key)
+  if (cached) return cached
+  const { data } = await api.get<{ download_url: string }>('/api/v1/files/download-url', { params: { key } })
+  s3UrlCache.set(key, data.download_url)
+  return data.download_url
+}
+
+/* ── S3 Image NodeView ─────────────────────────────────────────────── */
+
+function S3ImageNodeView({ node }: { node: { attrs: { src: string; alt?: string; title?: string } } }) {
+  const src = node.attrs.src ?? ''
+  const [url, setUrl] = useState<string | null>(isS3Uri(src) ? null : src)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    if (!isS3Uri(src)) {
+      setUrl(src)
+      return
+    }
+    let cancelled = false
+    resolveS3Url(src)
+      .then((resolved) => { if (!cancelled) setUrl(resolved) })
+      .catch(() => { if (!cancelled) setError(true) })
+    return () => { cancelled = true }
+  }, [src])
+
+  if (error) {
+    return (
+      <NodeViewWrapper as="span" className="inline-block">
+        <span className="inline-flex items-center gap-1 text-xs text-red-500">
+          <ImageIcon size={14} /> Image unavailable
+        </span>
+      </NodeViewWrapper>
+    )
+  }
+
+  if (!url) {
+    return (
+      <NodeViewWrapper as="span" className="inline-block">
+        <span className="inline-flex items-center gap-1 text-xs text-muted">Loading image…</span>
+      </NodeViewWrapper>
+    )
+  }
+
+  return (
+    <NodeViewWrapper as="figure" className="my-2">
+      <img
+        src={url}
+        alt={node.attrs.alt ?? ''}
+        title={node.attrs.title ?? undefined}
+        className="max-w-full h-auto rounded-lg"
+      />
+    </NodeViewWrapper>
+  )
+}
+
+const S3Image = TiptapImage.extend({
+  addNodeView() {
+    return ReactNodeViewRenderer(S3ImageNodeView)
+  },
+})
 
 interface RichTextEditorProps {
   content: string
@@ -70,6 +153,7 @@ export function RichTextEditor({
       }),
       Underline,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      S3Image.configure({ inline: false, allowBase64: false }),
       Markdown,
     ],
     content,
@@ -194,6 +278,17 @@ export function RichTextEditor({
             title="Horizontal rule"
           >
             <Minus size={15} />
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => {
+              const uri = window.prompt('S3 image URI (e.g. s3://edyma-s3/chapter-images/...)')
+              if (uri?.trim()) {
+                editor.chain().focus().setImage({ src: uri.trim() }).run()
+              }
+            }}
+            title="Insert image"
+          >
+            <ImageIcon size={15} />
           </ToolbarButton>
 
           <ToolbarDivider />
