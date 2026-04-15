@@ -51,8 +51,8 @@ async function resolveS3Url(s3Uri: string): Promise<string> {
 
 /* ── S3 Image NodeView ─────────────────────────────────────────────── */
 
-function S3ImageNodeView({ node }: { node: { attrs: { src: string; alt?: string; title?: string } } }) {
-  const src = node.attrs.src ?? ''
+function S3ImageNodeView({ node }: { node: { attrs: Record<string, unknown> } }) {
+  const src = (node.attrs.src as string) ?? ''
   const [url, setUrl] = useState<string | null>(isS3Uri(src) ? null : src)
   const [error, setError] = useState(false)
 
@@ -90,8 +90,8 @@ function S3ImageNodeView({ node }: { node: { attrs: { src: string; alt?: string;
     <NodeViewWrapper as="figure" className="my-2">
       <img
         src={url}
-        alt={node.attrs.alt ?? ''}
-        title={node.attrs.title ?? undefined}
+        alt={(node.attrs.alt as string) ?? ''}
+        title={(node.attrs.title as string) ?? undefined}
         className="max-w-full h-auto rounded-lg"
       />
     </NodeViewWrapper>
