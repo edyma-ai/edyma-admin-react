@@ -164,7 +164,6 @@ export function ClassroomDetailPage() {
 
 function SectionCard({
   section,
-  classroomId,
   onUpdate,
 }: {
   section: Section
