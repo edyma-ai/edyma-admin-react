@@ -10,7 +10,7 @@ import { Select } from '@/components/ui/Select'
 import { Badge } from '@/components/ui/Badge'
 import { useToast } from '@/components/ui/useToast'
 import { useAuth } from '@/auth/useAuth'
-import type { School, User, UserRole } from '@/types/models'
+import type { Classroom, School, Section, User, UserRole } from '@/types/models'
 import { apiErrorMessage } from '@/lib/apiError'
 
 type UserRow = User & Record<string, unknown>
@@ -57,7 +57,11 @@ export function UsersPage() {
     display_name: '',
     role: 'teacher' as string,
     school_id: '',
+    classroom_id: '',
+    section_id: '',
   })
+  const [classrooms, setClassrooms] = useState<Classroom[]>([])
+  const [inviteSections, setInviteSections] = useState<Section[]>([])
   const [editForm, setEditForm] = useState({
     display_name: '',
     account_status: 'active',
@@ -99,26 +103,40 @@ export function UsersPage() {
     void loadUsers()
   }, [loadUsers])
 
-  function openInvite() {
+  async function openInvite() {
     setInvite({
       email: '',
       password: '',
       display_name: '',
       role: 'teacher',
       school_id: isSuper ? '' : school?.id ?? '',
+      classroom_id: '',
+      section_id: '',
     })
+    setInviteSections([])
+    try {
+      const { data } = await api.get<Classroom[]>('/api/v1/classrooms')
+      setClassrooms(data)
+    } catch { /* ignore */ }
     setInviteOpen(true)
   }
 
   async function submitInvite() {
     try {
-      await api.post('/api/v1/admin/users', {
+      const { data: newUser } = await api.post<User>('/api/v1/admin/users', {
         email: invite.email,
         password: invite.password,
         display_name: invite.display_name,
         role: invite.role,
         school_id: invite.school_id || null,
       })
+      if (invite.role === 'student' && invite.section_id && newUser?.id) {
+        try {
+          await api.post(`/api/v1/sections/${invite.section_id}/students`, { student_id: newUser.id })
+        } catch (e) {
+          show(`User created but enrollment failed: ${apiErrorMessage(e)}`, 'error')
+        }
+      }
       show('User invited')
       setInviteOpen(false)
       void loadUsers()
@@ -271,6 +289,42 @@ export function UsersPage() {
               onChange={(e) => setInvite((i) => ({ ...i, school_id: e.target.value }))}
             />
           ) : null}
+          {invite.role === 'student' && (
+            <>
+              <Select
+                label="Auto-enroll in classroom (optional)"
+                placeholder="Select classroom"
+                options={[
+                  { value: '', label: 'None' },
+                  ...classrooms.map((c) => ({
+                    value: c.id,
+                    label: `${c.name} (${c.academic_year})`,
+                  })),
+                ]}
+                value={invite.classroom_id}
+                onChange={(e) => {
+                  const cid = e.target.value
+                  const cl = classrooms.find((c) => c.id === cid)
+                  setInvite((i) => ({ ...i, classroom_id: cid, section_id: '' }))
+                  setInviteSections(cl?.sections ?? [])
+                }}
+              />
+              {inviteSections.length > 0 && (
+                <Select
+                  label="Section"
+                  placeholder="Select section"
+                  options={inviteSections.map((s) => ({
+                    value: s.id,
+                    label: `Section ${s.label}`,
+                  }))}
+                  value={invite.section_id}
+                  onChange={(e) =>
+                    setInvite((i) => ({ ...i, section_id: e.target.value }))
+                  }
+                />
+              )}
+            </>
+          )}
         </div>
       </Modal>
 

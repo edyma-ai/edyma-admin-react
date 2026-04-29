@@ -20,13 +20,18 @@ export interface School {
   school_manager_id?: string | null
 }
 
+export interface Section {
+  id: string
+  label: string
+}
+
 export interface Classroom {
   id: string
   name: string
   academic_year: string
-  section?: string | null
-  teacher_id: string
+  school_id?: string | null
   is_current: boolean
+  sections: Section[]
   created_at: number
   updated_at: number
 }
@@ -53,16 +58,15 @@ export interface Chapter {
   updated_at: number
 }
 
-export interface ClassroomTeacher {
+export interface SectionTeacher {
   teacher_id: string
   display_name?: string | null
   email?: string | null
-  is_primary?: boolean
 }
 
 export interface EnrollmentRow {
   id: string
-  classroom_id: string
+  section_id: string
   student_id: string
   student_display_name?: string | null
   student_email?: string | null

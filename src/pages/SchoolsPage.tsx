@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Plus, Edit2 } from 'react-feather'
 import { api } from '@/api/client'
 import { PageHeader } from '@/components/ui/PageHeader'
@@ -13,6 +14,7 @@ import { apiErrorMessage } from '@/lib/apiError'
 type SchoolRow = School & Record<string, unknown>
 
 export function SchoolsPage() {
+  const nav = useNavigate()
   const { show } = useToast()
   const [rows, setRows] = useState<SchoolRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -120,7 +122,13 @@ export function SchoolsPage() {
           </Button>
         }
       />
-      <DataTable columns={columns} rows={rows} rowKey={(r) => r.id} loading={loading} />
+      <DataTable
+        columns={columns}
+        rows={rows}
+        rowKey={(r) => r.id}
+        loading={loading}
+        onRowClick={(r) => nav(`/classrooms?school_id=${r.id}`)}
+      />
 
       <Modal
         open={modal !== null}
