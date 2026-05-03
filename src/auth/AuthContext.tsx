@@ -4,7 +4,7 @@ import { api, clearTokens, setAuthExpiredHandler, setTokens, getStoredAccessToke
 import { apiErrorMessage } from '@/lib/apiError'
 import type { School, User } from '@/types/models'
 
-const ADMIN_ROLES = ['super_admin', 'school_manager'] as const
+const ADMIN_ROLES = ['super_admin', 'school_manager', 'super_sales_manager', 'super_content_manager'] as const
 
 interface AuthState {
   user: User | null
