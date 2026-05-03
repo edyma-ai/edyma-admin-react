@@ -28,7 +28,7 @@ export default function App() {
                 <Route
                   path="schools"
                   element={
-                    <RequireRole roles={['super_admin']}>
+                    <RequireRole roles={['super_admin', 'super_sales_manager', 'super_content_manager']}>
                       <SchoolsPage />
                     </RequireRole>
                   }

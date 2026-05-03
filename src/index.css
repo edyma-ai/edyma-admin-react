@@ -14,6 +14,13 @@
   --color-accent-green: #16a34a;
   --color-error: #b42318;
 
+  /* Chart palette */
+  --color-chart-1: #0369a1;
+  --color-chart-2: #16a34a;
+  --color-chart-3: #ea580c;
+  --color-chart-4: #8b5cf6;
+  --color-chart-5: #ec4899;
+
   --font-sans: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
 }
 

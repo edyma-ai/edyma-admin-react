@@ -16,10 +16,10 @@ interface NavItem {
 }
 
 const items: NavItem[] = [
-  { to: '/', label: 'Dashboard', icon: Home, roles: ['super_admin', 'school_manager'] },
-  { to: '/schools', label: 'Schools', icon: Book, roles: ['super_admin'] },
-  { to: '/users', label: 'Users', icon: Users, roles: ['super_admin', 'school_manager'] },
-  { to: '/classrooms', label: 'Classrooms', icon: Layers, roles: ['super_admin', 'school_manager'] },
+  { to: '/', label: 'Dashboard', icon: Home, roles: ['super_admin', 'school_manager', 'super_sales_manager'] },
+  { to: '/schools', label: 'Schools', icon: Book, roles: ['super_admin', 'super_sales_manager', 'super_content_manager'] },
+  { to: '/users', label: 'Users', icon: Users, roles: ['super_admin', 'school_manager', 'super_sales_manager'] },
+  { to: '/classrooms', label: 'Classrooms', icon: Layers, roles: ['super_admin', 'school_manager', 'super_content_manager'] },
   { to: '/support', label: 'Support', icon: MessageSquare, roles: ['super_admin'] },
   { to: '/llm-config', label: 'LLM Config', icon: Cpu, roles: ['super_admin'] },
 ]

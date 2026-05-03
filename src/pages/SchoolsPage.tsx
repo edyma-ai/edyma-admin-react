@@ -8,6 +8,7 @@ import { DataTable, type Column } from '@/components/ui/DataTable'
 import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/Input'
 import { useToast } from '@/components/ui/useToast'
+import { useAuth } from '@/auth/useAuth'
 import type { School } from '@/types/models'
 import { apiErrorMessage } from '@/lib/apiError'
 
@@ -16,6 +17,8 @@ type SchoolRow = School & Record<string, unknown>
 export function SchoolsPage() {
   const nav = useNavigate()
   const { show } = useToast()
+  const { user } = useAuth()
+  const canWrite = user?.role === 'super_admin'
   const [rows, setRows] = useState<SchoolRow[]>([])
   const [loading, setLoading] = useState(true)
   const [modal, setModal] = useState<'create' | 'edit' | null>(null)
@@ -98,28 +101,30 @@ export function SchoolsPage() {
     { key: 'name', header: 'Name' },
     { key: 'city', header: 'City', render: (r) => r.city ?? '—' },
     { key: 'country', header: 'Country', render: (r) => r.country ?? '—' },
-    {
+    ...(canWrite ? [{
       key: 'actions',
       header: '',
       className: 'w-24',
-      render: (r) => (
-        <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openEdit(r) }}>
+      render: (r: SchoolRow) => (
+        <Button variant="ghost" size="sm" onClick={(e: React.MouseEvent) => { e.stopPropagation(); openEdit(r) }}>
           <Edit2 size={16} />
         </Button>
       ),
-    },
+    }] : []),
   ]
 
   return (
     <div>
       <PageHeader
         title="Schools"
-        description="Create and manage partner schools"
+        description={canWrite ? 'Create and manage partner schools' : 'View partner schools'}
         actions={
-          <Button onClick={openCreate}>
-            <Plus size={18} />
-            Add school
-          </Button>
+          canWrite ? (
+            <Button onClick={openCreate}>
+              <Plus size={18} />
+              Add school
+            </Button>
+          ) : undefined
         }
       />
       <DataTable

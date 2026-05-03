@@ -9,7 +9,8 @@ import { Modal } from '@/components/ui/Modal'
 import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
 import { useToast } from '@/components/ui/useToast'
-import type { Classroom } from '@/types/models'
+import { useAuth } from '@/auth/useAuth'
+import type { Classroom, School } from '@/types/models'
 import { apiErrorMessage } from '@/lib/apiError'
 
 type ClassroomRow = Classroom & Record<string, unknown>
@@ -19,8 +20,11 @@ export function ClassroomsPage() {
   const [searchParams] = useSearchParams()
   const schoolFilter = searchParams.get('school_id')
   const { show } = useToast()
+  const { user } = useAuth()
+  const showSchoolColumn = user?.role === 'super_admin' || user?.role === 'super_sales_manager' || user?.role === 'super_content_manager'
   const [rows, setRows] = useState<ClassroomRow[]>([])
   const [loading, setLoading] = useState(true)
+  const [schools, setSchools] = useState<School[]>([])
   const [open, setOpen] = useState(false)
   const [form, setForm] = useState({
     name: '',
@@ -29,6 +33,13 @@ export function ClassroomsPage() {
     is_current: true,
     school_id: '',
   })
+
+  useEffect(() => {
+    if (!showSchoolColumn) return
+    api.get<School[]>('/api/v1/admin/schools').then(({ data }) => setSchools(data)).catch(() => {})
+  }, [showSchoolColumn])
+
+  const schoolNameMap = new Map(schools.map((s) => [s.id, s.name]))
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -77,6 +88,14 @@ export function ClassroomsPage() {
 
   const columns: Column<ClassroomRow>[] = [
     { key: 'name', header: 'Name' },
+    ...(showSchoolColumn && !schoolFilter ? [{
+      key: 'school',
+      header: 'School',
+      render: (r: ClassroomRow) => {
+        const name = r.school_id ? schoolNameMap.get(r.school_id) : null
+        return name ? <span className="text-sm">{name}</span> : <span className="text-xs text-muted">—</span>
+      },
+    }] : []),
     {
       key: 'sections',
       header: 'Sections',

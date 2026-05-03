@@ -1,4 +1,4 @@
-export type UserRole = 'super_admin' | 'school_manager' | 'teacher' | 'student'
+export type UserRole = 'super_admin' | 'school_manager' | 'super_sales_manager' | 'super_content_manager' | 'teacher' | 'student'
 
 export interface User {
   id: string
@@ -80,6 +80,88 @@ export interface AdminStats {
   teacher_count?: number
   student_count?: number
   school_id?: string | null
+}
+
+export interface WorkflowBreakdown {
+  workflow_type: string
+  credits: number
+  dollar_cost: number
+  count: number
+}
+
+export interface TimeSeriesPoint {
+  date: string
+  credits: number
+  dollar_cost: number
+  count: number
+}
+
+export interface ChatSessionStats {
+  total: number
+  unique_users: number
+  avg_per_user: number
+  trend: { date: string; sessions: number }[]
+}
+
+export interface TlmModuleStats {
+  total: number
+  trend: { date: string; modules: number }[]
+}
+
+export interface EvaluationStats {
+  total: number
+  completed: number
+  completion_rate: number
+  avg_score: number
+  score_distribution: { range: string; count: number }[]
+}
+
+export interface EngagementStats {
+  total_students: number
+  active_7d: number
+  engagement_rate: number
+  total_enrollments: number
+}
+
+export interface RecentLogin {
+  id: string
+  display_name: string
+  email: string
+  role: string
+  last_login_at: number
+}
+
+export interface CreditStats {
+  range_start: string
+  range_end: string
+  total_credits: number
+  total_dollar_cost: number
+  total_requests: number
+  by_workflow: WorkflowBreakdown[]
+  time_series: TimeSeriesPoint[]
+  chat_sessions: ChatSessionStats
+  tlm_modules: TlmModuleStats
+  evaluations: EvaluationStats
+  engagement: EngagementStats
+  recent_logins: RecentLogin[]
+}
+
+export interface UserUsageStats {
+  user: {
+    id: string
+    display_name: string
+    email: string
+    role: string
+    last_login_at: number | null
+    school_id: string | null
+  }
+  period_days: number
+  credits: number
+  dollar_cost: number
+  requests: number
+  chat_sessions: number
+  by_workflow: { workflow_type: string; credits: number; count: number }[]
+  daily: { date: string; credits: number; count: number }[]
 }
 
 export interface AdminNote {
