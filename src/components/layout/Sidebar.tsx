@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Home, Layers, Users, Book, MessageSquare, Cpu } from 'react-feather'
+import { Home, Layers, Users, Book, MessageSquare, Cpu, Bell } from 'react-feather'
 import type { UserRole } from '@/types/models'
 import { cn } from '@/lib/cn'
 
@@ -22,6 +22,7 @@ const items: NavItem[] = [
   { to: '/classrooms', label: 'Classrooms', icon: Layers, roles: ['super_admin', 'school_manager', 'super_content_manager'] },
   { to: '/support', label: 'Support', icon: MessageSquare, roles: ['super_admin'] },
   { to: '/llm-config', label: 'LLM Config', icon: Cpu, roles: ['super_admin'] },
+  { to: '/notifications', label: 'Notifications', icon: Bell, roles: ['super_admin'] },
 ]
 
 export function Sidebar({ role }: { role: UserRole | null }) {
