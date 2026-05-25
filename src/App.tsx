@@ -15,6 +15,7 @@ import { ChapterDetailPage } from '@/pages/ChapterDetailPage'
 import { SupportTicketsPage } from '@/pages/SupportTicketsPage'
 import { LLMConfigPage } from '@/pages/LLMConfigPage'
 import { NotificationsPage } from '@/pages/NotificationsPage'
+import { DigestsPage } from '@/pages/DigestsPage'
 
 export default function App() {
   return (
@@ -66,6 +67,14 @@ export default function App() {
                   element={
                     <RequireRole roles={['super_admin']}>
                       <NotificationsPage />
+                    </RequireRole>
+                  }
+                />
+                <Route
+                  path="digests"
+                  element={
+                    <RequireRole roles={['super_admin']}>
+                      <DigestsPage />
                     </RequireRole>
                   }
                 />
