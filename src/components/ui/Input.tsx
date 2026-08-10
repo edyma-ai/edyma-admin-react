@@ -1,31 +1,32 @@
-import type { InputHTMLAttributes } from 'react'
+import { forwardRef, type InputHTMLAttributes } from 'react'
 import { cn } from '@/lib/cn'
+import { Field, fieldChrome } from '@/components/ui/Field'
 
-interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string
+  hint?: string
   error?: string
+  /** Render the value in mono (ids, credentials, numbers). */
+  mono?: boolean
 }
 
-export function Input({ label, error, className, id, ...props }: InputProps) {
-  const inputId = id ?? props.name
+export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
+  { label, hint, error, mono, required, className, ...props },
+  ref,
+) {
   return (
-    <div className="w-full">
-      {label ? (
-        <label htmlFor={inputId} className="mb-1.5 block text-sm font-medium text-brand-slate">
-          {label}
-        </label>
-      ) : null}
-      <input
-        id={inputId}
-        className={cn(
-          'w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-brand-slate shadow-sm outline-none transition-colors',
-          'placeholder:text-slate-400 focus:border-brand-sky focus:ring-2 focus:ring-brand-sky/30',
-          error && 'border-error',
-          className,
-        )}
-        {...props}
-      />
-      {error ? <p className="mt-1 text-sm text-error">{error}</p> : null}
-    </div>
+    <Field label={label} hint={hint} error={error} required={required} className={className}>
+      {({ id, describedBy, invalid }) => (
+        <input
+          ref={ref}
+          id={id}
+          aria-describedby={describedBy}
+          aria-invalid={invalid || undefined}
+          required={required}
+          className={cn(fieldChrome(invalid), 'h-9 px-3', mono && 'font-mono')}
+          {...props}
+        />
+      )}
+    </Field>
   )
-}
+})

@@ -1,0 +1,164 @@
+/*
+ * Edyma design system — desktop dashboard grammar.
+ * Lumen (default, :root) and Eclipse (.dark) share one token vocabulary;
+ * components only ever reference the Tailwind names mapped in @theme below.
+ */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* Surfaces & ink */
+  --canvas: #f5f9fc;
+  --surface: #ffffff;
+  --elevated: #ffffff;
+  --ink: #101b2d;
+  --muted: #54677d;
+  --hairline: #e3ebf2;
+
+  /* Brand — sky is the one action color */
+  --sky: #2e9be6;
+  --sky-deep: #1e7fc2;
+  --sky-soft: #eaf5fd;
+
+  /* Semantics + soft fills */
+  --success: #16a34a;
+  --success-soft: #e8f7ee;
+  --warning: #d97706;
+  --warning-soft: #fdf3e3;
+  --danger: #dc2626;
+  --danger-soft: #fdebea;
+  --info: #2563eb;
+  --info-soft: #eaf1fe;
+
+  /* AI violet — reserved for AI-generated content markers */
+  --ai: #8b5cf6;
+  --ai-soft: #f3effe;
+
+  /* Subject / chart palette (CVD-validated against the Lumen surface) */
+  --chart-1: #2e9be6;
+  --chart-2: #8b5cf6;
+  --chart-3: #10b981;
+  --chart-4: #f59e0b;
+  --chart-5: #f43f5e;
+  --chart-6: #14b8a6;
+  --chart-7: #6366f1;
+  --chart-8: #f97316;
+  --chart-9: #06b6d4;
+  --chart-10: #65a30d;
+
+  /* Elevation — Lumen floats on soft blue-navy shadows, never pure black */
+  --elev-card: 0 1px 2px rgb(16 27 45 / 0.04), 0 10px 28px -16px rgb(16 27 45 / 0.14);
+  --elev-pop: 0 4px 12px rgb(16 27 45 / 0.08), 0 20px 44px -20px rgb(16 27 45 / 0.28);
+}
+
+.dark {
+  --canvas: #101b2d;
+  --surface: #16233a;
+  --elevated: #1b2b45;
+  --ink: #eaf2f9;
+  --muted: #8fa3b8;
+  --hairline: #24354f;
+
+  --sky: #2e9be6;
+  --sky-deep: #1e7fc2;
+  --sky-soft: #12283f;
+
+  --success: #34d399;
+  --success-soft: #12301f;
+  --warning: #fbbf24;
+  --warning-soft: #33260d;
+  --danger: #f87171;
+  --danger-soft: #391a1c;
+  --info: #60a5fa;
+  --info-soft: #142644;
+
+  --ai: #a78bfa;
+  --ai-soft: #241d3f;
+
+  /* Same hue order, steps re-picked to pass the lightness band on the Eclipse surface */
+  --chart-1: #2e9be6;
+  --chart-2: #8b5cf6;
+  --chart-3: #059669;
+  --chart-4: #d97706;
+  --chart-5: #f43f5e;
+  --chart-6: #0d9488;
+  --chart-7: #6366f1;
+  --chart-8: #ea580c;
+  --chart-9: #0891b2;
+  --chart-10: #65a30d;
+
+  /* Eclipse relies on hairline borders, not glow */
+  --elev-card: none;
+  --elev-pop: 0 20px 44px -16px rgb(0 0 0 / 0.55);
+}
+
+@theme inline {
+  --color-*: initial;
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-elevated: var(--elevated);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-hairline: var(--hairline);
+
+  --color-sky: var(--sky);
+  --color-sky-deep: var(--sky-deep);
+  --color-sky-soft: var(--sky-soft);
+
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-ai: var(--ai);
+  --color-ai-soft: var(--ai-soft);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-chart-7: var(--chart-7);
+  --color-chart-8: var(--chart-8);
+  --color-chart-9: var(--chart-9);
+  --color-chart-10: var(--chart-10);
+
+  --font-sans: 'Montserrat Variable', 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+
+  /* Shape: cards ~18px, controls ~10-12px */
+  --radius-card: 1.125rem;
+  --radius-control: 0.625rem;
+
+  --shadow-card: var(--elev-card);
+  --shadow-pop: var(--elev-pop);
+}
+
+/* Every interactive element gets a visible sky focus ring */
+@utility focus-ring {
+  @apply outline-none focus-visible:ring-2 focus-visible:ring-sky/70 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas;
+}
+
+@layer base {
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    @apply bg-canvas font-sans text-sm text-ink;
+  }
+
+  /* Numerals are always mono + tabular so columns of figures align */
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+  }
+}

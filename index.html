@@ -3,9 +3,35 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <link rel="icon" type="image/svg+xml" href="/edyma.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>edyma-admin-react</title>
+  <meta name="theme-color" content="#2E9BE6" />
+  <title>Edyma Admin</title>
+  <script>
+    // Single Page Apps for GitHub Pages — decode the /?/deep/path URL that
+    // public/404.html redirects to back into the real path before the router boots.
+    // MIT License — https://github.com/rafgraph/spa-github-pages
+    ;(function (l) {
+      if (l.search[1] === '/') {
+        var decoded = l.search
+          .slice(1)
+          .split('&')
+          .map(function (s) { return s.replace(/~and~/g, '&') })
+          .join('?')
+        window.history.replaceState(null, null, l.pathname.slice(0, -1) + decoded + l.hash)
+      }
+    })(window.location)
+  </script>
+  <script>
+    // Apply the persisted theme before first paint to avoid a flash of the wrong theme.
+    ;(function () {
+      try {
+        var stored = localStorage.getItem('edyma_admin_theme')
+        var eclipse = stored ? stored === 'eclipse' : window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (eclipse) document.documentElement.classList.add('dark')
+      } catch (e) { /* default to Lumen */ }
+    })()
+  </script>
 </head>
 
 <body>

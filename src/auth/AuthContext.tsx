@@ -1,15 +1,19 @@
 /* eslint-disable react-refresh/only-export-components -- context + provider in one module */
 import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { api, clearTokens, setAuthExpiredHandler, setTokens, getStoredAccessToken } from '@/api/client'
+import { api, clearTokens, isAuthRejection, setAuthExpiredHandler, setTokens, getStoredAccessToken } from '@/api/client'
+import { queryClient } from '@/api/queryClient'
 import { apiErrorMessage } from '@/lib/apiError'
-import type { School, User } from '@/types/models'
+import type { Me, TokenResponse } from '@/types/auth'
+import type { SchoolProfile } from '@/types/schools'
 
 const ADMIN_ROLES = ['super_admin', 'school_manager', 'super_sales_manager', 'super_content_manager'] as const
 
 interface AuthState {
-  user: User | null
-  school: School | null
+  user: Me | null
+  school: SchoolProfile | null
   loading: boolean
+  /** Set when session restore failed without invalidating the tokens (network error, 5xx) — retry via refreshSession. */
+  error: string | null
   login: (email: string, password: string) => Promise<void>
   logout: () => void
   refreshSession: () => Promise<void>
@@ -17,15 +21,32 @@ interface AuthState {
 
 export const AuthContext = createContext<AuthState | null>(null)
 
+function isAdminRole(role: string): boolean {
+  return (ADMIN_ROLES as readonly string[]).includes(role)
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [school, setSchool] = useState<School | null>(null)
+  const [user, setUser] = useState<Me | null>(null)
+  const [school, setSchool] = useState<SchoolProfile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const logout = useCallback(() => {
     clearTokens()
+    // Purge cached queries so the next account never sees this one's data.
+    queryClient.clear()
     setUser(null)
     setSchool(null)
+    setError(null)
+  }, [])
+
+  const loadSchool = useCallback(async () => {
+    try {
+      const { data } = await api.get<SchoolProfile>('/api/v1/schools/me')
+      setSchool(data)
+    } catch {
+      setSchool(null)
+    }
   }, [])
 
   const refreshSession = useCallback(async () => {
@@ -36,26 +57,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false)
       return
     }
+    setLoading(true)
+    setError(null)
     try {
-      const { data: me } = await api.get<User>('/api/v1/auth/me')
-      if (!ADMIN_ROLES.includes(me.role as (typeof ADMIN_ROLES)[number])) {
+      const { data: me } = await api.get<Me>('/api/v1/auth/me')
+      if (!isAdminRole(me.role)) {
         logout()
-        setLoading(false)
-        throw new Error('This account is not authorized for the admin console.')
+        return
       }
       setUser(me)
-      try {
-        const { data: sch } = await api.get<School>('/api/v1/schools/me')
-        setSchool(sch)
-      } catch {
-        setSchool(null)
+      await loadSchool()
+    } catch (err) {
+      // Only a definitive 401/403 destroys the session; a network error or 5xx
+      // keeps the tokens and surfaces a retryable error instead.
+      if (isAuthRejection(err)) {
+        logout()
+      } else {
+        setError(apiErrorMessage(err))
       }
-    } catch {
-      logout()
     } finally {
       setLoading(false)
     }
-  }, [logout])
+  }, [logout, loadSchool])
 
   useEffect(() => {
     setAuthExpiredHandler(() => {
@@ -67,31 +90,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(
     async (email: string, password: string) => {
-      let data: { access_token: string; refresh_token: string; user: User }
+      let data: TokenResponse
       try {
-        const resp = await api.post<typeof data>('/api/v1/auth/login', { email, password })
+        const resp = await api.post<TokenResponse>('/api/v1/auth/login', { email, password })
         data = resp.data
       } catch (err) {
         throw new Error(apiErrorMessage(err))
       }
 
+      // Drop any cache left over from a previous account on this browser.
+      queryClient.clear()
       setTokens(data.access_token, data.refresh_token)
 
-      if (!ADMIN_ROLES.includes(data.user.role as (typeof ADMIN_ROLES)[number])) {
+      if (!isAdminRole(data.user.role)) {
         logout()
         throw new Error('This account is not authorized for the admin console.')
       }
 
+      setError(null)
       setUser(data.user)
-
-      try {
-        const { data: sch } = await api.get<School>('/api/v1/schools/me')
-        setSchool(sch)
-      } catch {
-        setSchool(null)
-      }
+      await loadSchool()
     },
-    [logout],
+    [logout, loadSchool],
   )
 
   const value = useMemo(
@@ -99,11 +119,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       school,
       loading,
+      error,
       login,
       logout,
       refreshSession,
     }),
-    [user, school, loading, login, logout, refreshSession],
+    [user, school, loading, error, login, logout, refreshSession],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

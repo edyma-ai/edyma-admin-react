@@ -22,7 +22,7 @@ import {
   AlignRight,
   Minus,
   Image as ImageIcon,
-} from 'react-feather'
+} from 'lucide-react'
 
 /* ── S3 URI helpers ────────────────────────────────────────────────── */
 
@@ -53,17 +53,15 @@ async function resolveS3Url(s3Uri: string): Promise<string> {
 
 function S3ImageNodeView({ node }: { node: { attrs: Record<string, unknown> } }) {
   const src = (node.attrs.src as string) ?? ''
-  const [url, setUrl] = useState<string | null>(isS3Uri(src) ? null : src)
+  const [resolvedUrl, setResolvedUrl] = useState<string | null>(null)
   const [error, setError] = useState(false)
+  const url = isS3Uri(src) ? resolvedUrl : src
 
   useEffect(() => {
-    if (!isS3Uri(src)) {
-      setUrl(src)
-      return
-    }
+    if (!isS3Uri(src)) return
     let cancelled = false
     resolveS3Url(src)
-      .then((resolved) => { if (!cancelled) setUrl(resolved) })
+      .then((resolved) => { if (!cancelled) setResolvedUrl(resolved) })
       .catch(() => { if (!cancelled) setError(true) })
     return () => { cancelled = true }
   }, [src])
@@ -71,7 +69,7 @@ function S3ImageNodeView({ node }: { node: { attrs: Record<string, unknown> } })
   if (error) {
     return (
       <NodeViewWrapper as="span" className="inline-block">
-        <span className="inline-flex items-center gap-1 text-xs text-red-500">
+        <span className="inline-flex items-center gap-1 text-xs text-danger">
           <ImageIcon size={14} /> Image unavailable
         </span>
       </NodeViewWrapper>
@@ -98,7 +96,8 @@ function S3ImageNodeView({ node }: { node: { attrs: Record<string, unknown> } })
   )
 }
 
-const S3Image = TiptapImage.extend({
+/** Tiptap image node that resolves s3:// URIs through /files/download-url — also used by the read-only MarkdownView. */
+export const S3Image = TiptapImage.extend({
   addNodeView() {
     return ReactNodeViewRenderer(S3ImageNodeView)
   },
@@ -127,8 +126,8 @@ function ToolbarButton({ onClick, active, title, children }: ToolbarButtonProps)
       className={cn(
         'rounded-md p-1.5 transition-colors',
         active
-          ? 'bg-brand-slate text-white'
-          : 'text-muted hover:bg-slate-100 hover:text-brand-slate',
+          ? 'bg-sky text-white'
+          : 'text-muted hover:bg-ink/5 hover:text-ink',
       )}
     >
       {children}
@@ -183,13 +182,13 @@ export function RichTextEditor({
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-xl border border-border bg-white shadow-sm',
+        'overflow-hidden rounded-control border border-hairline bg-surface',
         !editable && 'opacity-60',
         className,
       )}
     >
       {editable && (
-        <div className="flex flex-wrap items-center gap-0.5 border-b border-border bg-slate-50/80 px-2 py-1.5">
+        <div className="flex flex-wrap items-center gap-0.5 border-b border-hairline bg-canvas/80 px-2 py-1.5">
           {/* Headings */}
           <ToolbarButton
             onClick={toggle(() => editor.chain().focus().toggleHeading({ level: 1 }).run())}

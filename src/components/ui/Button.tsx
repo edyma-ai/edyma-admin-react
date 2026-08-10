@@ -1,48 +1,50 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react'
 import { cn } from '@/lib/cn'
+import { Spinner } from '@/components/ui/Spinner'
 
-const variants = {
-  primary: 'bg-brand-slate text-white hover:bg-slate-800 shadow-sm',
-  secondary: 'bg-brand-sky text-brand-slate hover:bg-sky-300',
-  outline: 'border border-border bg-white text-brand-slate hover:bg-slate-50',
-  danger: 'bg-error text-white hover:bg-red-700',
-  ghost: 'text-muted hover:bg-slate-100',
-} as const
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger'
+export type ButtonSize = 'sm' | 'md' | 'lg'
 
-const sizes = {
-  sm: 'px-3 py-1.5 text-sm rounded-md',
-  md: 'px-4 py-2 text-sm font-semibold rounded-lg',
-  lg: 'px-5 py-2.5 text-base font-semibold rounded-lg',
-} as const
-
-type Variant = keyof typeof variants
-type Size = keyof typeof sizes
-
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: Variant
-  size?: Size
-  children: ReactNode
+const VARIANTS: Record<ButtonVariant, string> = {
+  primary: 'bg-sky text-white shadow-card hover:bg-sky-deep active:bg-sky-deep',
+  secondary: 'border border-hairline bg-surface text-ink hover:border-sky/40 hover:bg-sky-soft',
+  ghost: 'text-muted hover:bg-ink/5 hover:text-ink dark:hover:bg-white/5',
+  danger: 'bg-danger text-white hover:opacity-90',
 }
 
-export function Button({
-  className,
-  variant = 'primary',
-  size = 'md',
-  type = 'button',
-  disabled,
-  ...props
-}: ButtonProps) {
+const SIZES: Record<ButtonSize, string> = {
+  sm: 'h-8 gap-1.5 px-3 text-[13px]',
+  md: 'h-9 gap-2 px-4 text-[13px]',
+  lg: 'h-11 gap-2 px-5 text-sm',
+}
+
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: ButtonVariant
+  size?: ButtonSize
+  loading?: boolean
+  icon?: ReactNode
+}
+
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  { variant = 'primary', size = 'md', loading = false, icon, className, children, disabled, type = 'button', ...props },
+  ref,
+) {
   return (
     <button
+      ref={ref}
       type={type}
-      disabled={disabled}
+      disabled={disabled || loading}
       className={cn(
-        'inline-flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:pointer-events-none',
-        variants[variant],
-        sizes[size],
+        'focus-ring inline-flex select-none items-center justify-center rounded-control font-semibold transition-colors',
+        'disabled:pointer-events-none disabled:opacity-55',
+        VARIANTS[variant],
+        SIZES[size],
         className,
       )}
       {...props}
-    />
+    >
+      {loading ? <Spinner size="sm" /> : icon}
+      {children}
+    </button>
   )
-}
+})

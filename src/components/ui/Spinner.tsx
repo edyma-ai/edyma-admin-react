@@ -1,20 +1,17 @@
 import { cn } from '@/lib/cn'
 
-const sizes = {
-  sm: 'h-4 w-4',
-  md: 'h-6 w-6',
-  lg: 'h-10 w-10',
+const SIZES = {
+  sm: 'h-4 w-4 border-2',
+  md: 'h-6 w-6 border-2',
+  lg: 'h-9 w-9 border-[3px]',
 } as const
 
-export function Spinner({ size = 'md', className }: { size?: keyof typeof sizes; className?: string }) {
+export function Spinner({ size = 'md', className }: { size?: keyof typeof SIZES; className?: string }) {
   return (
-    <svg className={cn(sizes[size], 'animate-spin', className)} viewBox="0 0 24 24" fill="none">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-      />
-    </svg>
+    <span
+      role="status"
+      aria-label="Loading"
+      className={cn('inline-block animate-spin rounded-full border-current border-t-transparent', SIZES[size], className)}
+    />
   )
 }

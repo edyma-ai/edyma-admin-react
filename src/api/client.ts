@@ -48,6 +48,29 @@ function isAuthEndpoint(url: string | undefined): boolean {
   return AUTH_ENDPOINTS.some((ep) => url.includes(ep))
 }
 
+/** True only for a definitive 401/403 response — never for network errors or 5xx. */
+export function isAuthRejection(err: unknown): boolean {
+  if (!axios.isAxiosError(err)) return false
+  const status = err.response?.status
+  return status === 401 || status === 403
+}
+
+// Parallel 401s share one in-flight refresh — the first racer fires it, the rest await it.
+let refreshInFlight: Promise<{ access_token: string; refresh_token: string }> | null = null
+
+function refreshTokens(refreshToken: string): Promise<{ access_token: string; refresh_token: string }> {
+  refreshInFlight ??= axios
+    .post<{ access_token: string; refresh_token: string }>(`${apiBaseUrl}/api/v1/auth/refresh`, { refresh_token: refreshToken })
+    .then(({ data }) => {
+      setTokens(data.access_token, data.refresh_token)
+      return data
+    })
+    .finally(() => {
+      refreshInFlight = null
+    })
+  return refreshInFlight
+}
+
 api.interceptors.response.use(
   (r) => r,
   async (error: AxiosError) => {
@@ -61,16 +84,16 @@ api.interceptors.response.use(
       const rt = getStoredRefreshToken()
       if (rt) {
         try {
-          const { data } = await axios.post<{ access_token: string; refresh_token: string }>(
-            `${apiBaseUrl}/api/v1/auth/refresh`,
-            { refresh_token: rt },
-          )
-          setTokens(data.access_token, data.refresh_token)
+          const data = await refreshTokens(rt)
           original.headers.Authorization = `Bearer ${data.access_token}`
           return api(original)
-        } catch {
-          clearTokens()
-          onAuthExpired?.()
+        } catch (refreshErr) {
+          // Only a rejected refresh token ends the session; a network error or
+          // 5xx leaves tokens in place so a later request can retry the refresh.
+          if (isAuthRejection(refreshErr)) {
+            clearTokens()
+            onAuthExpired?.()
+          }
         }
       } else {
         clearTokens()

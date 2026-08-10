@@ -1,41 +1,17 @@
+@import '@fontsource-variable/montserrat';
+@import '@fontsource-variable/jetbrains-mono';
 @import 'tailwindcss';
-
-@theme {
-  /* Brand — matches Flutter AppColors / AppTheme */
-  --color-brand-slate: #0f172a;
-  --color-brand-sky: #77c6fc;
-  --color-brand-sky-light: #bbe3fe;
-  --color-muted: #475569;
-  --color-canvas: #f8fafc;
-  --color-border-light: #e2e8f0;
-  --color-border: #cbd5e1;
-  --color-accent-blue: #0369a1;
-  --color-accent-orange: #ea580c;
-  --color-accent-green: #16a34a;
-  --color-error: #b42318;
-
-  /* Chart palette */
-  --color-chart-1: #0369a1;
-  --color-chart-2: #16a34a;
-  --color-chart-3: #ea580c;
-  --color-chart-4: #8b5cf6;
-  --color-chart-5: #ec4899;
-
-  --font-sans: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
-}
-
-html {
-  @apply antialiased;
-}
-
-body {
-  @apply bg-canvas text-brand-slate font-sans;
-}
+@import './theme/tokens.css';
 
 /* TipTap rich text editor content styles */
 .tiptap-content .ProseMirror {
   min-height: 200px;
   outline: none;
+}
+
+/* Read-only markdown viewer — no editor min-height (short TLM sections stay compact) */
+.tiptap-view .ProseMirror {
+  min-height: 0;
 }
 
 .tiptap-content .ProseMirror h1 {
@@ -80,28 +56,28 @@ body {
 }
 
 .tiptap-content .ProseMirror blockquote {
-  border-left: 3px solid var(--color-border);
+  border-left: 3px solid var(--hairline);
   padding-left: 1rem;
   margin: 0.5rem 0;
-  color: var(--color-muted);
+  color: var(--muted);
   font-style: italic;
 }
 
 .tiptap-content .ProseMirror pre {
-  background-color: #f1f5f9;
+  background-color: var(--canvas);
   border-radius: 0.5rem;
   padding: 0.75rem 1rem;
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 0.85rem;
   margin: 0.5rem 0;
   overflow-x: auto;
 }
 
 .tiptap-content .ProseMirror code {
-  background-color: #f1f5f9;
+  background-color: var(--canvas);
   border-radius: 0.25rem;
   padding: 0.1rem 0.3rem;
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 0.85em;
 }
 
@@ -112,7 +88,7 @@ body {
 
 .tiptap-content .ProseMirror hr {
   border: none;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--hairline);
   margin: 1rem 0;
 }
 

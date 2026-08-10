@@ -1,49 +1,53 @@
-import type { SelectHTMLAttributes } from 'react'
+import { forwardRef, type SelectHTMLAttributes } from 'react'
+import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { Field, fieldChrome } from '@/components/ui/Field'
 
-interface Option {
+export interface SelectOption {
   value: string
   label: string
+  disabled?: boolean
 }
 
-interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'children'> {
+export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string
+  hint?: string
   error?: string
-  options: Option[]
+  options: SelectOption[]
   placeholder?: string
 }
 
-export function Select({ label, error, options, className, id, placeholder, ...props }: SelectProps) {
-  const selectId = id ?? props.name
+export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select(
+  { label, hint, error, options, placeholder, required, className, ...props },
+  ref,
+) {
   return (
-    <div className="w-full">
-      {label ? (
-        <label htmlFor={selectId} className="mb-1.5 block text-sm font-medium text-brand-slate">
-          {label}
-        </label>
-      ) : null}
-      <select
-        id={selectId}
-        className={cn(
-          'w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-brand-slate shadow-sm outline-none',
-          'focus:border-brand-sky focus:ring-2 focus:ring-brand-sky/30',
-          error && 'border-error',
-          className,
-        )}
-        {...props}
-      >
-        {placeholder ? (
-          <option value="" disabled>
-            {placeholder}
-          </option>
-        ) : null}
-        {options.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
-      {error ? <p className="mt-1 text-sm text-error">{error}</p> : null}
-    </div>
+    <Field label={label} hint={hint} error={error} required={required} className={className}>
+      {({ id, describedBy, invalid }) => (
+        <div className="relative">
+          <select
+            ref={ref}
+            id={id}
+            aria-describedby={describedBy}
+            aria-invalid={invalid || undefined}
+            required={required}
+            className={cn(fieldChrome(invalid), 'h-9 appearance-none pl-3 pr-9')}
+            {...props}
+          >
+            {placeholder ? (
+              <option value="" disabled>
+                {placeholder}
+              </option>
+            ) : null}
+            {options.map((option) => (
+              <option key={option.value} value={option.value} disabled={option.disabled}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown aria-hidden className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+        </div>
+      )}
+    </Field>
   )
-}
+})

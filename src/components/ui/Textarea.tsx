@@ -1,31 +1,31 @@
-import type { TextareaHTMLAttributes } from 'react'
+import { forwardRef, type TextareaHTMLAttributes } from 'react'
 import { cn } from '@/lib/cn'
+import { Field, fieldChrome } from '@/components/ui/Field'
 
-interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string
+  hint?: string
   error?: string
 }
 
-export function Textarea({ label, error, className, id, ...props }: TextareaProps) {
-  const tid = id ?? props.name
+export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(function Textarea(
+  { label, hint, error, required, className, rows = 4, ...props },
+  ref,
+) {
   return (
-    <div className="w-full">
-      {label ? (
-        <label htmlFor={tid} className="mb-1.5 block text-sm font-medium text-brand-slate">
-          {label}
-        </label>
-      ) : null}
-      <textarea
-        id={tid}
-        className={cn(
-          'min-h-[100px] w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-brand-slate shadow-sm outline-none',
-          'focus:border-brand-sky focus:ring-2 focus:ring-brand-sky/30',
-          error && 'border-error',
-          className,
-        )}
-        {...props}
-      />
-      {error ? <p className="mt-1 text-sm text-error">{error}</p> : null}
-    </div>
+    <Field label={label} hint={hint} error={error} required={required} className={className}>
+      {({ id, describedBy, invalid }) => (
+        <textarea
+          ref={ref}
+          id={id}
+          rows={rows}
+          aria-describedby={describedBy}
+          aria-invalid={invalid || undefined}
+          required={required}
+          className={cn(fieldChrome(invalid), 'px-3 py-2')}
+          {...props}
+        />
+      )}
+    </Field>
   )
-}
+})

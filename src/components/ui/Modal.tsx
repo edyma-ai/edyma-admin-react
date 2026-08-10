@@ -1,42 +1,49 @@
-import type { ReactNode } from 'react'
-import { X } from 'react-feather'
-import { Button } from './Button'
+import { useId, type ReactNode } from 'react'
+import { X } from 'lucide-react'
+import { cn } from '@/lib/cn'
+import { IconButton } from '@/components/ui/IconButton'
+import { Overlay } from '@/components/ui/Overlay'
 
-interface ModalProps {
-  open: boolean
-  title: string
-  onClose: () => void
-  children: ReactNode
-  footer?: ReactNode
-  size?: 'sm' | 'md' | 'lg'
+type ModalSize = 'sm' | 'md' | 'lg'
+
+const SIZES: Record<ModalSize, string> = {
+  sm: 'max-w-md',
+  md: 'max-w-xl',
+  lg: 'max-w-3xl',
 }
 
-const widths = { sm: 'max-w-md', md: 'max-w-lg', lg: 'max-w-2xl' }
+export interface ModalProps {
+  open: boolean
+  onClose: () => void
+  title: ReactNode
+  description?: ReactNode
+  size?: ModalSize
+  footer?: ReactNode
+  children: ReactNode
+}
 
-export function Modal({ open, title, onClose, children, footer, size = 'md' }: ModalProps) {
-  if (!open) return null
+export function Modal({ open, onClose, title, description, size = 'md', footer, children }: ModalProps) {
+  const titleId = useId()
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <button
-        type="button"
-        aria-label="Close overlay"
-        className="absolute inset-0 bg-brand-slate/40 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div
-        role="dialog"
-        aria-modal="true"
-        className={`relative z-10 w-full ${widths[size]} rounded-xl border border-border bg-white p-6 shadow-xl`}
-      >
-        <div className="mb-4 flex items-start justify-between gap-4">
-          <h2 className="text-lg font-semibold text-brand-slate">{title}</h2>
-          <Button variant="ghost" size="sm" className="!p-1" onClick={onClose} aria-label="Close">
-            <X size={20} />
-          </Button>
+    <Overlay
+      open={open}
+      onClose={onClose}
+      align="center"
+      labelledBy={titleId}
+      panelClassName={cn('flex max-h-[85vh] w-full flex-col rounded-card border border-hairline bg-surface shadow-pop', SIZES[size])}
+    >
+      <div className="flex items-start justify-between gap-4 px-5 pt-5">
+        <div className="min-w-0">
+          <h2 id={titleId} className="text-base font-bold tracking-tight text-ink">
+            {title}
+          </h2>
+          {description ? <p className="mt-0.5 text-[13px] text-muted">{description}</p> : null}
         </div>
-        <div className="text-sm text-brand-slate">{children}</div>
-        {footer ? <div className="mt-6 flex justify-end gap-2 border-t border-border-light pt-4">{footer}</div> : null}
+        <IconButton label="Close" icon={<X />} size="sm" onClick={onClose} className="-mr-1 -mt-1" />
       </div>
-    </div>
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{children}</div>
+      {footer ? <div className="flex items-center justify-end gap-2 border-t border-hairline px-5 py-4">{footer}</div> : null}
+    </Overlay>
   )
 }
