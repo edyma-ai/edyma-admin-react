@@ -15,11 +15,14 @@ export function TemplateFields({
 }) {
   const fields = adminFields(template)
   if (!fields.length) {
+    // Not an error state: some notices derive every value per recipient, so
+    // there is genuinely nothing to ask. Saying so explicitly stops it reading
+    // as a form that failed to load.
     return (
-      <p className="text-[12px] text-muted">
-        This notice fills itself in per student.
-        {template.code === 'assignment_overdue' ? ' Only students with work past its due date are messaged.' : null}
-      </p>
+      <div className="rounded-lg border border-hairline bg-surface-muted px-3 py-2 text-[12px] text-muted">
+        <span className="font-medium">Nothing to fill in.</span> This notice builds every value from each student's own record.
+        {template.code === 'assignment_overdue' ? ' Only students with work past its due date are messaged; the rest are skipped.' : null}
+      </div>
     )
   }
   return (

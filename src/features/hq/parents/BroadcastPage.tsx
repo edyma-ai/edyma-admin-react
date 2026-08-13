@@ -185,9 +185,9 @@ export function ParentBroadcastPage() {
               </div>
             ) : (
               <FileDrop
-                accept=".pdf,.png,.jpg,.jpeg"
+                accept=".pdf,.png,.jpg,.jpeg,.mp4,.3gp,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
                 title={uploadMedia.isPending ? 'Uploading…' : 'Attach a file (optional)'}
-                hint="Sent as a second message after the notice"
+                hint="Image, video or document. Sent as a second message after the notice"
                 onFile={async (file) => {
                   try {
                     setMedia(await uploadMedia.mutateAsync(file))
