@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '@/api/client'
-import type { AcademicYear, Chapter, ChapterListItem, ClassInfo, Subject } from '@/types/curriculum'
+import type { AcademicYear, Chapter, ChapterListItem, ClassInfo, InteractiveElement, Subject } from '@/types/curriculum'
 
 /** Master curriculum is fixture-owned and changes only on deploys — cache generously. */
 const CURRICULUM_STALE_MS = 10 * 60_000
@@ -28,6 +28,16 @@ export function useChapters(subjectId: string | undefined) {
     enabled: Boolean(subjectId),
     staleTime: CURRICULUM_STALE_MS,
     queryFn: async () => (await api.get<ChapterListItem[]>(`/api/v1/curriculum/subjects/${subjectId}/chapters`)).data,
+  })
+}
+
+/** The HTML body of one sim, fetched when it is about to be rendered. */
+export function useInteractiveElement(elementId: string | undefined) {
+  return useQuery({
+    queryKey: ['curriculum', 'interactive', elementId],
+    enabled: Boolean(elementId),
+    staleTime: CURRICULUM_STALE_MS,
+    queryFn: async () => (await api.get<InteractiveElement>(`/api/v1/curriculum/interactive/${elementId}`)).data,
   })
 }
 

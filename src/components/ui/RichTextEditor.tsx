@@ -5,7 +5,7 @@ import TextAlign from '@tiptap/extension-text-align'
 import TiptapImage from '@tiptap/extension-image'
 import { Markdown } from 'tiptap-markdown'
 import { useCallback, useEffect, useState } from 'react'
-import { api } from '@/api/client'
+import { isS3Uri, resolveS3Url } from '@/lib/s3'
 
 function getMarkdown(editor: Editor): string {
   return (editor.storage as Record<string, any>).markdown.getMarkdown() // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -23,31 +23,6 @@ import {
   Minus,
   Image as ImageIcon,
 } from 'lucide-react'
-
-/* ── S3 URI helpers ────────────────────────────────────────────────── */
-
-const S3_PREFIX = 's3://'
-
-function isS3Uri(uri: string): boolean {
-  return uri.startsWith(S3_PREFIX)
-}
-
-function s3UriToKey(uri: string): string {
-  const withoutScheme = uri.slice(S3_PREFIX.length)
-  const slashIdx = withoutScheme.indexOf('/')
-  return slashIdx < 0 ? withoutScheme : withoutScheme.slice(slashIdx + 1)
-}
-
-const s3UrlCache = new Map<string, string>()
-
-async function resolveS3Url(s3Uri: string): Promise<string> {
-  const key = s3UriToKey(s3Uri)
-  const cached = s3UrlCache.get(key)
-  if (cached) return cached
-  const { data } = await api.get<{ download_url: string }>('/api/v1/files/download-url', { params: { key } })
-  s3UrlCache.set(key, data.download_url)
-  return data.download_url
-}
 
 /* ── S3 Image NodeView ─────────────────────────────────────────────── */
 

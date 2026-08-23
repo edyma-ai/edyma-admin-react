@@ -40,7 +40,8 @@ export function useUpdateParentContact(studentId: string) {
 export function useSendIntro() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (studentId: string) => (await api.post<JobStartResponse>(`${BASE}/contacts/${studentId}/intro`)).data,
+    mutationFn: async ({ studentId, resend = false }: { studentId: string; resend?: boolean }) =>
+      (await api.post<JobStartResponse>(`${BASE}/contacts/${studentId}/intro`, undefined, { params: resend ? { resend: true } : undefined })).data,
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['parent-comms'] }),
   })
 }

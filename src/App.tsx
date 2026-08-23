@@ -23,6 +23,7 @@ import { TlmsPage } from '@/features/hq/content/tlms/TlmsPage'
 import { LeadsPage } from '@/features/hq/leads/LeadsPage'
 import { ImportUsersPage } from '@/features/hq/onboarding/ImportUsersPage'
 import { SchoolWizardPage } from '@/features/hq/onboarding/SchoolWizardPage'
+import { AppVersionsPage } from '@/features/hq/ops/AppVersionsPage'
 import { LlmConfigPage } from '@/features/hq/ops/LlmConfigPage'
 import { NotificationsPage } from '@/features/hq/ops/NotificationsPage'
 import { RbacPage } from '@/features/hq/ops/RbacPage'
@@ -252,6 +253,7 @@ export default function App() {
                 <Route path="ops/rbac" element={ops(<RbacPage />)} />
                 <Route path="ops/support" element={ops(<SupportPage />)} />
                 <Route path="ops/notifications" element={ops(<NotificationsPage />)} />
+                <Route path="ops/app-versions" element={ops(<AppVersionsPage />)} />
 
                 {/* Parent communication — reports, inbox, notices, log */}
                 <Route path="parents/reports" element={<RequireRole roles={PARENTS}><ParentReportsPage /></RequireRole>} />

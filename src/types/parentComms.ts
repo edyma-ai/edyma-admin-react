@@ -215,6 +215,8 @@ export interface WhatsappTemplate {
   requires_meta_approval: boolean
   admin_selectable: boolean
   default_language: ParentLanguage
+  /** IMAGE / VIDEO: the file is supplied per send and travels inside the message (JPEG/PNG; MP4/3GPP). */
+  header_format: 'TEXT' | 'IMAGE' | 'VIDEO'
   header_parameters: TemplateParameter[]
   parameters: TemplateParameter[]
   buttons: ParentLanguage[]

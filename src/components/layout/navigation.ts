@@ -25,6 +25,7 @@ import {
   TrendingUp,
   Users,
   type LucideIcon,
+  Smartphone,
 } from 'lucide-react'
 import type { UserRole } from '@/types/common'
 
@@ -82,6 +83,7 @@ const HQ_GROUPS: { label?: string; items: HqNavItem[] }[] = [
       { label: 'RBAC', to: '/ops/rbac', icon: ShieldCheck, roles: SA },
       { label: 'Support', to: '/ops/support', icon: LifeBuoy, roles: SA },
       { label: 'Notifications', to: '/ops/notifications', icon: Bell, roles: SA },
+      { label: 'App versions', to: '/ops/app-versions', icon: Smartphone, roles: SA },
     ],
   },
   {

@@ -15,7 +15,7 @@ import { useToast } from '@/components/ui/useToast'
 import { apiErrorMessage } from '@/lib/apiError'
 import type { AudienceType, MediaAttachment } from '@/types/parentComms'
 import { ConfirmModal } from '@/features/hq/content/shared/ConfirmModal'
-import { allFilled, humanise, submittableValues } from '@/features/hq/parents/templateForm'
+import { allFilled, humanise, mediaHeaderProblem, mediaHeaderRule, submittableValues } from '@/features/hq/parents/templateForm'
 import { TemplateFields, TemplatePreview, UnapprovedTemplateWarning } from '@/features/hq/parents/templateFields'
 
 /**
@@ -63,7 +63,9 @@ export function ParentBroadcastPage() {
     audienceType === 'students' ? picked.length : audienceType === 'section' ? '-' : (contacts.data ?? []).filter((c) => c.parent_whatsapp && !c.parent_opted_out).length
 
   const audienceChosen = audienceType === 'school' ? Boolean(schoolId) : audienceType === 'section' ? Boolean(sectionId) : picked.length > 0
-  const ready = Boolean(template?.meta_name) && allFilled(template, values) && audienceChosen
+  // A media-header notice *is* the file; without one there is nothing to send.
+  const headerRule = mediaHeaderRule(template)
+  const ready = Boolean(template?.meta_name) && allFilled(template, values) && audienceChosen && (!headerRule || Boolean(media))
 
   async function send() {
     setConfirming(false)
@@ -163,7 +165,10 @@ export function ParentBroadcastPage() {
             setTemplateCode(event.target.value)
             // Values belong to the template that asked for them; carrying them
             // over would submit one notice's text under another's parameter names.
+            // The file goes too: an image chosen for the image notice would
+            // otherwise silently become a follow-up on a text one.
             setValues({})
+            setMedia(null)
           }}
           placeholder={noticeTemplates.isLoading ? 'Loading templates…' : 'Pick an approved notice'}
           options={(noticeTemplates.data ?? []).map((entry) => ({ value: entry.code, label: humanise(entry.code) }))}
@@ -185,10 +190,18 @@ export function ParentBroadcastPage() {
               </div>
             ) : (
               <FileDrop
-                accept=".pdf,.png,.jpg,.jpeg,.mp4,.3gp,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
-                title={uploadMedia.isPending ? 'Uploading…' : 'Attach a file (optional)'}
-                hint="Image, video or document. Sent as a second message after the notice"
+                accept={headerRule ? headerRule.accept : '.pdf,.png,.jpg,.jpeg,.mp4,.3gp,.doc,.docx,.xls,.xlsx,.ppt,.pptx'}
+                title={uploadMedia.isPending ? 'Uploading…' : headerRule ? headerRule.title : 'Attach a file (optional)'}
+                hint={headerRule ? headerRule.hint : 'Image, video or document. Sent as a second message after the notice'}
                 onFile={async (file) => {
+                  // Checked here, before the upload, in WhatsApp's own terms -
+                  // the server repeats the check, but a refusal the admin sees
+                  // while the file is still in their hand is the useful one.
+                  const problem = headerRule ? mediaHeaderProblem(headerRule, file) : null
+                  if (problem) {
+                    toast.show(problem, 'error')
+                    return
+                  }
                   try {
                     setMedia(await uploadMedia.mutateAsync(file))
                   } catch (err) {
@@ -198,7 +211,7 @@ export function ParentBroadcastPage() {
               />
             )}
 
-            {media ? (
+            {media && !headerRule ? (
               <div className="flex items-start gap-2 rounded-lg bg-warning-soft px-3 py-2 text-[12px] text-warning">
                 <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                 <span>

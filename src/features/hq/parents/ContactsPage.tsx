@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
-import { Send, UserRoundCog } from 'lucide-react'
+import { RefreshCw, Send, UserRoundCog } from 'lucide-react'
 import { useParentContacts, useSendIntro, useUpdateParentContact } from '@/api/queries/parentComms'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
+import { ConfirmModal } from '@/features/hq/content/shared/ConfirmModal'
 import { SectionCard } from '@/components/ui/Card'
 import { DataTable, type Column } from '@/components/ui/DataTable'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -98,10 +99,13 @@ export function ParentContactsPage() {
     )
   }, [contacts.data, search])
 
-  async function intro(contact: ParentContact) {
+  const [resending, setResending] = useState<ParentContact | null>(null)
+
+  async function intro(contact: ParentContact, resend = false) {
+    setResending(null)
     try {
-      await sendIntro.mutateAsync(contact.student_id)
-      toast.show('Introduction sent')
+      await sendIntro.mutateAsync({ studentId: contact.student_id, resend })
+      toast.show(resend ? 'Introduction sent again' : 'Introduction sent')
     } catch (err) {
       toast.show(apiErrorMessage(err), 'error')
     }
@@ -134,6 +138,22 @@ export function ParentContactsPage() {
               Send intro
             </Button>
           ) : null}
+          {row.parent_whatsapp && row.parent_intro_sent_at && !row.parent_opted_out ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<RefreshCw className="h-3.5 w-3.5" />}
+              title={`Last sent ${new Date(row.parent_intro_sent_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}`}
+              onClick={() => setResending(row)}
+            >
+              <span className="flex flex-col items-start leading-tight">
+                <span>Resend intro</span>
+                <span className="text-[10px] font-normal text-muted">
+                  Sent <Timestamp at={row.parent_intro_sent_at} className="text-[10px]" />
+                </span>
+              </span>
+            </Button>
+          ) : null}
           <Button variant="ghost" size="sm" icon={<UserRoundCog className="h-3.5 w-3.5" />} onClick={() => setEditing(row)}>
             Edit
           </Button>
@@ -161,6 +181,15 @@ export function ParentContactsPage() {
       </SectionCard>
 
       {editing ? <EditContactModal contact={editing} onClose={() => setEditing(null)} /> : null}
+      {resending ? (
+        <ConfirmModal
+          title="Send the introduction again?"
+          description={`${resending.parent_name || 'This parent'} last received it on ${new Date(resending.parent_intro_sent_at ?? 0).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}. Sending again opens a new billed WhatsApp conversation and asks them to pick a language afresh; their current choice stays until they tap.`}
+          confirmLabel="Resend"
+          onConfirm={() => intro(resending, true)}
+          onClose={() => setResending(null)}
+        />
+      ) : null}
     </div>
   )
 }
