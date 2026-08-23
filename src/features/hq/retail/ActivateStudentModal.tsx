@@ -196,7 +196,11 @@ export function ActivateStudentModal({ prefill, onClose, onActivated }: Activate
       open
       onClose={closeGuard.requestClose}
       title="Activate individual student"
-      description="Binds the student to the retail tenant, enrolls them into the class cohort and starts the Individual plan."
+      description={
+        selectedUser?.account_kind === 'guest'
+          ? 'Upgrades this guest account in place: the same login, with everything they have already done, moves onto the Individual plan.'
+          : 'Binds the student to the retail tenant, enrolls them into the class cohort and starts the Individual plan.'
+      }
       footer={
         <>
           <Button variant="secondary" onClick={closeGuard.requestClose}>
@@ -227,7 +231,10 @@ export function ActivateStudentModal({ prefill, onClose, onActivated }: Activate
               {selectedUser ? (
                 <div className="flex items-center justify-between rounded-control border border-sky bg-sky-soft px-3 py-2">
                   <div className="min-w-0">
-                    <p className="truncate text-[13px] font-semibold text-ink">{selectedUser.display_name}</p>
+                    <p className="flex min-w-0 items-center gap-1.5 text-[13px] font-semibold text-ink">
+                      <span className="truncate">{selectedUser.display_name}</span>
+                      {selectedUser.account_kind === 'guest' ? <Badge tone="sky">Guest</Badge> : null}
+                    </p>
                     <p className="truncate text-xs text-muted">{selectedUser.email}</p>
                   </div>
                   <Button variant="ghost" size="sm" onClick={() => setSelectedUser(null)}>
@@ -249,7 +256,10 @@ export function ActivateStudentModal({ prefill, onClose, onActivated }: Activate
                           <span className="block truncate text-[13px] font-semibold text-ink">{candidate.display_name}</span>
                           <span className="block truncate text-xs text-muted">{candidate.email}</span>
                         </span>
-                        {candidate.school_id ? <Badge tone="warning">Retail</Badge> : <Badge tone="neutral">Unattached</Badge>}
+                        <span className="flex shrink-0 items-center gap-1.5">
+                          {candidate.account_kind === 'guest' ? <Badge tone="sky">Guest</Badge> : null}
+                          {candidate.school_id ? <Badge tone="warning">Retail</Badge> : <Badge tone="neutral">Unattached</Badge>}
+                        </span>
                       </button>
                     </li>
                   ))}

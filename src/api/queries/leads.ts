@@ -1,13 +1,15 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/api/client'
-import type { Lead, LeadStatus, LeadUpdateBody, RetailActivationBody, RetailActivationResult } from '@/types/leads'
+import type { Lead, LeadSource, LeadStatus, LeadUpdateBody, RetailActivationBody, RetailActivationResult } from '@/types/leads'
 
-export function useLeads(status?: LeadStatus, options: { staleTime?: number } = {}) {
+/** `source` narrows to website-form or guest leads server-side (the backend indexes it). */
+export function useLeads(status?: LeadStatus, options: { source?: LeadSource; staleTime?: number } = {}) {
+  const source = options.source
   return useQuery({
-    queryKey: ['leads', 'list', { status }],
+    queryKey: ['leads', 'list', { status, source }],
     staleTime: options.staleTime,
     placeholderData: keepPreviousData,
-    queryFn: async () => (await api.get<Lead[]>('/api/v1/leads', { params: { status } })).data,
+    queryFn: async () => (await api.get<Lead[]>('/api/v1/leads', { params: { status, source } })).data,
   })
 }
 

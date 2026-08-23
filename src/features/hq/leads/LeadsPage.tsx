@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { PhoneCall } from 'lucide-react'
 import { useLeads } from '@/api/queries/leads'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -14,11 +15,14 @@ import { Timestamp } from '@/features/hq/shared/Timestamp'
 import { LeadDrawer } from '@/features/hq/leads/LeadDrawer'
 import { LeadStatusBadge } from '@/features/hq/leads/LeadStatusBadge'
 import {
+  LEAD_SOURCES,
+  LEAD_SOURCE_LABELS,
   LEAD_STATUSES,
   LEAD_STATUS_LABELS,
   leadDisplayName,
   leadMatchesSearch,
   parseLeadKind,
+  parseLeadSource,
   parseLeadStatus,
   type LeadKindFilter,
 } from '@/features/hq/leads/leadFilters'
@@ -31,8 +35,19 @@ function leadColumns(kind: LeadKindFilter): Column<Lead>[] {
     header: kind === 'school' ? 'School' : 'Lead',
     render: (row) => (
       <div className="min-w-0">
-        <p className="truncate font-semibold text-ink">{leadDisplayName(row)}</p>
-        <p className="truncate text-xs text-muted">{row.email}</p>
+        <p className="flex min-w-0 items-center gap-1.5 font-semibold text-ink">
+          <span className="truncate">{leadDisplayName(row)}</span>
+          {row.source === 'guest' ? <Badge tone="sky">Guest</Badge> : null}
+        </p>
+        <p className="truncate text-xs text-muted">{row.email ?? 'No email'}</p>
+        {row.callback_requested_at ? (
+          <p className="mt-1 flex items-center gap-1.5">
+            <Badge tone="warning" icon={<PhoneCall aria-hidden className="h-3 w-3" />}>
+              Callback requested
+            </Badge>
+            <Timestamp at={row.callback_requested_at} className="text-[11px] text-muted" />
+          </p>
+        ) : null}
       </div>
     ),
     sortValue: (row) => leadDisplayName(row),
@@ -83,9 +98,12 @@ export function LeadsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const status = parseLeadStatus(searchParams.get('status'))
   const kind = parseLeadKind(searchParams.get('kind'))
+  const source = parseLeadSource(searchParams.get('source'))
   const search = searchParams.get('search') ?? ''
 
-  const leads = useLeads()
+  // Source is the one server-side facet: the backend indexes it, and guests are a
+  // different pipeline rather than a slice of the same one.
+  const leads = useLeads(undefined, { source: source || undefined })
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
   function patchParams(patch: Record<string, string>) {
@@ -127,11 +145,11 @@ export function LeadsPage() {
 
   const columns = useMemo(() => leadColumns(kind), [kind])
   const selected = useMemo(() => leads.data?.find((lead) => lead.id === selectedId) ?? null, [leads.data, selectedId])
-  const hasFilters = Boolean(status || kind || search)
+  const hasFilters = Boolean(status || kind || source || search)
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title="Leads" description="Everyone who raised a hand on the website. Work them from new to converted." />
+      <PageHeader title="Leads" description="Everyone who raised a hand on the website or started exploring the app as a guest. Work them from new to converted." />
 
       <div className="flex flex-wrap items-center gap-3">
         <SearchInput value={search} onChange={(value) => patchParams({ search: value })} placeholder="Search name, school, phone, city…" className="w-72" />
@@ -157,6 +175,15 @@ export function LeadsPage() {
             {LEAD_STATUS_LABELS[value]}
           </FilterChip>
         ))}
+        <span aria-hidden className="mx-1 h-5 w-px bg-border" />
+        <FilterChip active={!source} onClick={() => patchParams({ source: '' })}>
+          All sources
+        </FilterChip>
+        {LEAD_SOURCES.map((value) => (
+          <FilterChip key={value} active={source === value} onClick={() => patchParams({ source: source === value ? '' : value })}>
+            {LEAD_SOURCE_LABELS[value]}
+          </FilterChip>
+        ))}
       </FilterChipRow>
 
       <DataTable
@@ -168,7 +195,8 @@ export function LeadsPage() {
         onRetry={() => void leads.refetch()}
         onRowClick={(row) => setSelectedId(row.id)}
         pageSize={15}
-        pageResetKey={[search, kind ?? '', status ?? ''].join('|')}
+        refreshing={leads.isPlaceholderData}
+        pageResetKey={[search, kind, status, source].join('|')}
         initialSort={{ key: 'created', direction: 'desc' }}
         emptyState={
           hasFilters ? (
@@ -176,7 +204,7 @@ export function LeadsPage() {
               title="No leads match"
               description="Try a different search or clear the filters."
               action={
-                <Button variant="secondary" size="sm" onClick={() => patchParams({ status: '', kind: '', search: '' })}>
+                <Button variant="secondary" size="sm" onClick={() => patchParams({ status: '', kind: '', source: '', search: '' })}>
                   Clear filters
                 </Button>
               }

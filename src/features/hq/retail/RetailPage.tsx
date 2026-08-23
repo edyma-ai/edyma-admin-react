@@ -50,7 +50,10 @@ function StudentsTable({ tenantId, cohortByStudent, onActivate }: StudentsTableP
         header: 'Student',
         render: (row) => (
           <div className="min-w-0">
-            <p className="truncate font-semibold text-ink">{row.display_name}</p>
+            <p className="flex min-w-0 items-center gap-1.5 font-semibold text-ink">
+              <span className="truncate">{row.display_name}</span>
+              {row.account_kind === 'guest' ? <Badge tone="sky">Guest</Badge> : null}
+            </p>
             <p className="truncate text-xs text-muted">{row.email}</p>
           </div>
         ),

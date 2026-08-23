@@ -1,5 +1,8 @@
 import type { AccountStatus, Timestamped, UserRole } from '@/types/common'
 
+/** Guest accounts come from the app's "Explore as a guest" entry and expire; activation upgrades them to members in place. */
+export type AccountKind = 'guest' | 'member'
+
 /**
  * Admin user routes (`/admin/users*`) return the serialized RAW Mongo doc
  * (password hash stripped server-side), plus usage totals when requested.
@@ -10,6 +13,8 @@ export interface AdminUser extends Timestamped {
   display_name: string
   role: UserRole
   account_status: AccountStatus
+  /** Absent on accounts that predate guest access; treat that as a member. */
+  account_kind?: AccountKind | null
   school_id?: string | null
   avatar_key?: string | null
   notification_prefs?: Record<string, boolean> | null

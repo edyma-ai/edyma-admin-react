@@ -1,7 +1,10 @@
 import type { PlanContext } from '@/types/auth'
+import type { AccountKind } from '@/types/users'
 
 export type LeadStatus = 'new' | 'contacted' | 'converted'
 export type LeadKind = 'student' | 'school'
+/** Where the lead came from: the website form, or a visitor who started exploring the app as a guest. */
+export type LeadSource = 'form' | 'guest'
 
 /** One entry of a lead's append-only notes timeline. */
 export interface LeadNote {
@@ -15,14 +18,23 @@ export interface Lead {
   id: string
   kind: LeadKind
   status: LeadStatus
+  /** Absent on docs that predate guest access; treat that as 'form'. */
+  source?: LeadSource
   phone: string
-  email: string
+  /** Null on guest leads, where email is optional. */
+  email: string | null
   board?: string | null
   city?: string | null
   /* Student variant */
   name?: string | null
   guardian_name?: string | null
   grade?: string | null
+  /* Guest variant: the account the visitor is already using. */
+  user_id?: string | null
+  class_id?: string | null
+  callback_requested_at?: number | null
+  guest_expires_at?: number | null
+  account_kind?: AccountKind | null
   /* School variant */
   school_name?: string | null
   contact_name?: string | null
